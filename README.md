@@ -409,6 +409,12 @@ export default function AuthRedirect() {
 ```
 
 ### Replacing app/routes/profile.jsx with the following code:
+In this page, we will show the user's profile, and We will use our sign-out api route.
+
+We will remove session and user infos from state and storage if signOut api return success. Then user will be redirected to login page.
+
+This page is protected. Before page loaded, We will check cookie. If there is token, and it's valid, we will sign in and fetch user, session information. If there is not or not valid, the user will be redirected to sign in page.
+
 ```jsx
 import { Link, useLoaderData } from '@remix-run/react';
 import { getAllSessions, getToken, getUserByToken, requireAuth } from '~/utils/auth.server';
