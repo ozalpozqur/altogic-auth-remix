@@ -107,9 +107,18 @@ const altogic = createClient(ENV_URL, CLIENT_KEY, {
 
 export default altogic;
 ```
-> Replace ENV_URL, CLIENT_KEY and API_KEY which is shown in the <strong>Home</strong> view of [Altogic Designer](https://designer.altogic.com/).
+> Replace ENV_URL, CLIENT_KEY and API_KEY which is shown in the **Home** view of [Altogic Designer](https://designer.altogic.com/).
 
 
+## Create Routes
+Remix has built-in file system routing. It means that we can create a page by creating a file in the `app/routes` directory.
+Let's create some views in **pages/** folder as below:
+* index.jsx
+* login.jsx
+* register.jsx
+* profile.jsx
+* login-with-magic-link.jsx
+* auth-redirect.jsx
 
 
 ## Conclusion
