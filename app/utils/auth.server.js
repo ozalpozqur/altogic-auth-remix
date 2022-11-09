@@ -87,7 +87,7 @@ export async function requireNoAuth(request) {
 export async function createUserSession(token, redirectTo) {
 	const session = await storage.getSession();
 	session.set('token', token);
-	return redirect(redirectTo, {
+	throw redirect(redirectTo, {
 		headers: {
 			'Set-Cookie': await storage.commitSession(session),
 		},

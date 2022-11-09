@@ -112,7 +112,9 @@ export default altogic;
 
 ## Create Routes
 Remix has built-in file system routing. It means that we can create a page by creating a file in the `app/routes` directory.
-Let's create some views in **pages/** folder as below:
+Let's create some pages and directory in **pages/** folder as below:
+* api/logout.jsx
+* api/update-user.jsx
 * index.jsx
 * login.jsx
 * register.jsx
@@ -120,6 +122,291 @@ Let's create some views in **pages/** folder as below:
 * login-with-magic-link.jsx
 * auth-redirect.jsx
 
+![Alt text](github/pages.png "vscode preview")
+
+### Replacing app/routes/index.jsx with the following code:
+In this page, we will show Login, Login With Magic Link and Register buttons.
+```jsx
+import { Link } from '@remix-run/react';
+import { json } from '@remix-run/node';
+import { requireNoAuth } from '~/utils/auth.server';
+
+export async function loader({ request }) {
+	await requireNoAuth(request);
+	return json({});
+}
+
+export default function Index() {
+	return (
+		<div className="flex items-center justify-center gap-4 h-screen">
+			<Link to="/login-with-magic-link" className="border px-4 py-2 font-medium text-xl">
+				Login With Magic Link
+			</Link>
+			<Link to="/login" className="border px-4 py-2 font-medium text-xl">
+				Login
+			</Link>
+			<Link to="/register" className="border px-4 py-2 font-medium text-xl">
+				Register
+			</Link>
+		</div>
+	);
+}
+```
+
+### Replacing app/routes/login.jsx with the following code:
+In this page, we will show a form to log in with email and password. 
+
+We will use **remix's action** call our backend api. We will save session and user infos to state and storage if the api return success. Then user will be redirected to profile page.
+```jsx
+import { Form, Link, useActionData, useTransition } from '@remix-run/react';
+import { login, createUserSession, requireNoAuth } from '~/utils/auth.server';
+import { json } from '@remix-run/node';
+import altogic from '~/libs/altogic';
+
+export async function loader({ request }) {
+	await requireNoAuth(request);
+	return json({});
+}
+
+export async function action({ request }) {
+	const formData = await request.formData();
+	const { email, password } = Object.fromEntries(formData);
+	const { session, errors } = await login({ email, password });
+
+	if (errors) {
+		return json({ errors });
+	}
+
+	altogic.auth.setSession(session);
+	return createUserSession(session.token, '/profile');
+}
+export default function Login() {
+	const transition = useTransition();
+	const actionData = useActionData();
+	const busy = transition.state === 'submitting';
+
+	return (
+		<section className="flex flex-col items-center justify-center h-96 gap-4">
+			<Form method="post" className="flex flex-col gap-2 w-full md:w-96">
+				<h1 className="self-start text-3xl font-bold">Login to your account</h1>
+				{actionData?.errors && (
+					<div className="bg-red-600 text-white text-[13px] p-2">
+						{actionData.errors?.items?.map((error, index) => (
+							<p key={index}>{error.message}</p>
+						))}
+					</div>
+				)}
+
+				<input name="email" type="email" placeholder="Type your email" required />
+				<input name="password" type="password" placeholder="Type your password" required />
+				<div className="flex justify-between gap-4">
+					<Link className="text-indigo-600" to="/register">
+						Don't have an account? Register now
+					</Link>
+					<button
+						disabled={!!busy}
+						type="submit"
+						className="border py-2 px-3 border-gray-500 hover:bg-gray-500 hover:text-white transition shrink-0"
+					>
+						Login
+					</button>
+				</div>
+			</Form>
+		</section>
+	);
+}
+```
+
+### Replacing pages/login-with-magic-link.vue with the following code:
+In this page, we will show a form to **log in with Magic Link** with only email. We will use Altogic's **altogic.auth.sendMagicLinkEmail()** function to log in.
+
+````jsx
+import { Link, useActionData, useFetcher } from '@remix-run/react';
+import altogic from '~/libs/altogic';
+import { json } from '@remix-run/node';
+import { useRef, useEffect } from 'react';
+
+export async function action({ request }) {
+    const formData = await request.formData();
+    const email = formData.get('email');
+    const { errors } = await altogic.auth.sendMagicLinkEmail(email);
+    return json({ errors });
+}
+
+export default function LoginWithMagicLink() {
+    const actionData = useActionData();
+    const fetcher = useFetcher();
+    const formRef = useRef(null);
+    const isDone = !actionData?.errors && fetcher.type === 'done';
+
+    useEffect(() => {
+        if (isDone) formRef.current?.reset();
+    }, [isDone]);
+
+    return (
+        <section className="flex flex-col items-center justify-center h-96 gap-4">
+            <fetcher.Form ref={formRef} method="post" className="flex flex-col gap-2 w-full md:w-96">
+                <h1 className="self-start text-3xl font-bold">Login with magic link</h1>
+
+                {isDone && (
+                    <div className="bg-green-600 text-white text-[13px] p-2">
+                        We have sent you a magic link. Please check your email.
+                    </div>
+                )}
+
+                {actionData?.errors && (
+                    <div className="bg-red-600 text-white text-[13px] p-2">
+                        {actionData.errors?.items?.map((error, index) => (
+                            <p key={index}>{error.message}</p>
+                        ))}
+                    </div>
+                )}
+
+                <input name="email" type="email" placeholder="Type your email" required />
+                <div className="flex justify-between gap-4 items-start">
+                    <Link to="/register" className="text-indigo-600">
+                        Don't have an account? Register now
+                    </Link>
+                    <button
+                        type="submit"
+                        className="border py-2 px-3 border-gray-500 hover:bg-gray-500 hover:text-white transition shrink-0"
+                    >
+                        Send magic link
+                    </button>
+                </div>
+            </fetcher.Form>
+        </section>
+    );
+}
+````
+
+### Replacing app/routes/register.jsx with the following code:
+In this page, we will show a form to sign up with email and password. We will use **remix's action** call our backend api.
+
+We will save session and user infos to state and storage if the api return session. Then user will be redirected to profile page.
+
+If signUpWithEmail does not return session, it means user need to confirm email, so we will show the success message.
+
+```jsx
+import { Form, Link, useActionData, useTransition } from '@remix-run/react';
+import { json } from '@remix-run/node';
+import altogic from '~/libs/altogic';
+import { register, createUserSession, requireNoAuth } from '~/utils/auth.server';
+import { useEffect, useRef } from 'react';
+
+export async function loader({ request }) {
+	await requireNoAuth(request);
+	return json({});
+}
+
+export async function action({ request }) {
+	const formData = await request.formData();
+	const { email, password, name } = Object.fromEntries(formData);
+	const { user, session, errors } = await register({ email, password, name });
+
+	if (errors) {
+		return json({ errors });
+	}
+
+	if (!session) {
+		return json({ needToVerify: true });
+	}
+
+	altogic.auth.setSession(session);
+	return createUserSession(session.token, '/profile');
+}
+export default function Login() {
+	const transition = useTransition();
+	const actionData = useActionData();
+	const busy = transition.state === 'submitting';
+	const formRef = useRef(null);
+
+	useEffect(() => {
+		if (actionData?.needToVerify) {
+			formRef.current?.reset();
+			document.activeElement.blur();
+		}
+	}, [actionData]);
+
+	return (
+		<section className="flex flex-col items-center justify-center h-96 gap-4">
+			<Form ref={formRef} method="post" className="flex flex-col gap-2 w-full md:w-96">
+				<h1 className="self-start text-3xl font-bold">Login to your account</h1>
+				{actionData?.needToVerify && (
+					<div className="bg-green-500 text-white p-2">
+						Your account has been created. Please check your email to verify your account.
+					</div>
+				)}
+				{actionData?.errors && (
+					<div className="bg-red-600 text-white text-[13px] p-2">
+						{actionData.errors?.items?.map((error, index) => (
+							<p key={index}>{error.message}</p>
+						))}
+					</div>
+				)}
+				<input name="name" autoComplete="given-name" type="text" placeholder="Type your name" required />
+				<input name="email" autoComplete="email" type="email" placeholder="Type your email" required />
+				<input
+					name="password"
+					type="password"
+					autoComplete="new-password"
+					placeholder="Type your password"
+					required
+				/>
+				<div className="flex justify-between gap-4">
+					<Link className="text-indigo-600" to="/login">
+						Already have an account? Login now
+					</Link>
+					<button
+						disabled={!!busy}
+						type="submit"
+						className="border py-2 px-3 border-gray-500 hover:bg-gray-500 hover:text-white transition shrink-0"
+					>
+						Create account
+					</button>
+				</div>
+			</Form>
+		</section>
+	);
+}
+```
+
+### Replacing app/routes/auth-redirect.jsx with the following code:
+
+We use this page for verify the user's email address and Login With Magic Link Authentication.
+
+```jsx
+import { json } from '@remix-run/node';
+import { useLoaderData } from '@remix-run/react';
+import altogic from '~/libs/altogic';
+import { createUserSession } from '~/utils/auth.server';
+
+export async function loader({ request }) {
+	const url = new URL(request.url);
+	const accessToken = url.searchParams.get('access_token');
+
+	const { session, errors } = await altogic.auth.getAuthGrant(accessToken);
+	if (errors) return json({ errors });
+	await createUserSession(session.token, '/profile');
+}
+
+export default function AuthRedirect() {
+	const { errors } = useLoaderData();
+	return (
+		<section className="h-screen flex flex-col gap-4 justify-center items-center">
+			{errors && (
+				<div className="text-center">
+					{errors.items?.map((error, index) => (
+						<p className="text-red-500 text-3xl" key={index}>
+							{error.message}
+						</p>
+					))}
+				</div>
+			)}
+		</section>
+	);
+}
+```
 
 ## Conclusion
 Congratulations!✨
