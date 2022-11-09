@@ -478,6 +478,130 @@ export async function loader() {
 }
 ```
 
+# Let's get to the most important point
+Remix is a server side rendering tool, we will do some operations on the backend. 
+So we need to create a folder named `utils/` in our `app/` directory and create a file named `auth.server.js` in it.
+
+### Replacing app/utils/auth.server.js with the following code:
+
+In this file, we will create some functions for our authentication system.
+for more information about authentication, you can check the [Remix Documentation](https://remix.run/docs/en/v1/tutorials/jokes#authentication).
+
+```js
+
+````js
+import { createCookieSessionStorage, json, redirect } from '@remix-run/node';
+import altogic from '~/libs/altogic';
+
+export async function logout(request) {
+	const session = await getUserSession(request);
+	const token = session.get('token');
+
+	altogic.auth.setSession({ token });
+	await altogic.auth.signOut(token);
+
+	return redirect('/login', {
+		headers: {
+			'Set-Cookie': await storage.destroySession(session),
+		},
+	});
+}
+
+const sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret) {
+	throw new Error('SESSION_SECRET must be set in your environment');
+}
+
+const storage = createCookieSessionStorage({
+	cookie: {
+		name: 'session',
+		secure: process.env.NODE_ENV === 'production',
+		secrets: [sessionSecret],
+		sameSite: 'lax',
+		path: '/',
+		maxAge: 60 * 60 * 24 * 30,
+		httpOnly: true,
+	},
+});
+
+function getUserSession(request) {
+	return storage.getSession(request.headers.get('Cookie'));
+}
+export async function getToken(request) {
+	const session = await getUserSession(request);
+	const token = session.get('token');
+	if (!token) return null;
+	return token;
+}
+export async function requireAuth(request) {
+	const session = await getUserSession(request);
+	const token = session.get('token');
+	if (!token) {
+		throw redirect(`/login`);
+	}
+	return token;
+}
+export async function requireNoAuth(request) {
+	const session = await getUserSession(request);
+	const token = session.get('token');
+	if (token) {
+		throw redirect(`/profile`);
+	}
+	return null;
+}
+export async function createUserSession(token, redirectTo) {
+	const session = await storage.getSession();
+	session.set('token', token);
+	throw redirect(redirectTo, {
+		headers: {
+			'Set-Cookie': await storage.commitSession(session),
+		},
+	});
+}
+
+export async function getUserFromDbAndWriteToSession(request, needAuth = false) {
+	const session = await getUserSession(request);
+	const { user } = await getUserByToken(session.get('token'));
+
+	session.set('user', user);
+
+	if (needAuth && !user) {
+		return redirect('/login', {
+			headers: {
+				'Set-Cookie': await storage.destroySession(session),
+			},
+		});
+	}
+
+	return json(user, {
+		headers: {
+			'Set-Cookie': await storage.commitSession(session),
+		},
+	});
+}
+
+export async function getAllSessions(request) {
+	const { sessions, errors } = await altogic.auth.getAllSessions();
+	const token = await getToken(request);
+
+	if (errors) {
+		return { errors };
+	}
+
+	return {
+		sessions: sessions.map(session => ({
+			...session,
+			isCurrent: session.token === token,
+		})),
+	};
+}
+
+export function getUserByToken(token) {
+	altogic.auth.setSession({ token });
+	return altogic.auth.getUserFromDB();
+}
+````
+
 ## Avatar Component for uploading profile picture
 In this component, we will use Altogic's **altogic.storage.bucket('root').upload()** function to upload the image to the storage.
 ```jsx

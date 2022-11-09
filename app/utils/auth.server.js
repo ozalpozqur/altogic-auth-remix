@@ -35,33 +35,12 @@ const storage = createCookieSessionStorage({
 function getUserSession(request) {
 	return storage.getSession(request.headers.get('Cookie'));
 }
-export async function getUser(request) {
-	const session = await getUserSession(request);
-	const user = session.get('user');
-	if (!user) return null;
-	return user;
-}
 export async function getToken(request) {
 	const session = await getUserSession(request);
 	const token = session.get('token');
 	if (!token) return null;
 	return token;
 }
-export async function updateUser(request, data) {
-	const session = await getUserSession(request);
-	const { _id } = await getUser(request);
-	altogic.auth.setSession({ token: session.get('token') });
-
-	const { data: user } = await altogic.db.model('users').object(_id).update(data);
-	session.set('user', user);
-
-	return json(user, {
-		headers: {
-			'Set-Cookie': await storage.commitSession(session),
-		},
-	});
-}
-
 export async function requireAuth(request) {
 	const session = await getUserSession(request);
 	const token = session.get('token');
