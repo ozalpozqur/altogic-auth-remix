@@ -159,7 +159,7 @@ In this page, we will show a form to log in with email and password.
 We will use **remix's action** call our backend api. We will save session and user infos to state and storage if the api return success. Then user will be redirected to profile page.
 ```jsx
 import { Form, Link, useActionData, useTransition } from '@remix-run/react';
-import { login, createUserSession, requireNoAuth } from '~/utils/auth.server';
+import { createUserSession, requireNoAuth } from '~/utils/auth.server';
 import { json } from '@remix-run/node';
 import altogic from '~/libs/altogic';
 
@@ -171,7 +171,7 @@ export async function loader({ request }) {
 export async function action({ request }) {
 	const formData = await request.formData();
 	const { email, password } = Object.fromEntries(formData);
-	const { session, errors } = await login({ email, password });
+	const { session, errors } = await altogic.auth.signInWithEmail(email, password);
 
 	if (errors) {
 		return json({ errors });
@@ -291,7 +291,7 @@ If signUpWithEmail does not return session, it means user need to confirm email,
 import { Form, Link, useActionData, useTransition } from '@remix-run/react';
 import { json } from '@remix-run/node';
 import altogic from '~/libs/altogic';
-import { register, createUserSession, requireNoAuth } from '~/utils/auth.server';
+import { createUserSession, requireNoAuth } from '~/utils/auth.server';
 import { useEffect, useRef } from 'react';
 
 export async function loader({ request }) {
@@ -302,7 +302,7 @@ export async function loader({ request }) {
 export async function action({ request }) {
 	const formData = await request.formData();
 	const { email, password, name } = Object.fromEntries(formData);
-	const { user, session, errors } = await register({ email, password, name });
+	const { session, errors } = await altogic.auth.signUpWithEmail(email, password, name);
 
 	if (errors) {
 		return json({ errors });
@@ -315,7 +315,7 @@ export async function action({ request }) {
 	altogic.auth.setSession(session);
 	return createUserSession(session.token, '/profile');
 }
-export default function Login() {
+export default function Register() {
 	const transition = useTransition();
 	const actionData = useActionData();
 	const busy = transition.state === 'submitting';
@@ -408,6 +408,40 @@ export default function AuthRedirect() {
 }
 ```
 
+### Replacing app/routes/profile.jsx with the following code:
+```jsx
+import { Link, useLoaderData } from '@remix-run/react';
+import { getAllSessions, getToken, getUserByToken, requireAuth } from '~/utils/auth.server';
+import UserInfo from '~/components/UserInfo';
+import Avatar from '~/components/Avatar';
+import { json } from '@remix-run/node';
+import Sessions from '~/components/Sessions';
+
+export async function loader({ request }) {
+	await requireAuth(request);
+	const { user, errors: userErrors } = await getUserByToken(await getToken(request));
+	const { sessions, errors: sessionErrors } = await getAllSessions(request);
+	if (userErrors || sessionErrors) {
+		return json(userErrors || sessionErrors, { status: 401 });
+	}
+	return json({ user, sessions });
+}
+export default function Profile() {
+	const { user, sessions } = useLoaderData();
+	return (
+		<div>
+			<section className="h-screen py-4 space-y-4 flex flex-col text-center items-center">
+				<Avatar user={user} />
+				<UserInfo user={user} />
+				<Sessions sessions={sessions} />
+				<Link to="/api/logout" className="bg-gray-400 rounded py-2 px-3 text-white">
+					Logout
+				</Link>
+			</section>
+		</div>
+	);
+}
+```
 ## Conclusion
 Congratulations!✨
 

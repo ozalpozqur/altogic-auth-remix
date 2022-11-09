@@ -1,12 +1,6 @@
 import { createCookieSessionStorage, json, redirect } from '@remix-run/node';
 import altogic from '~/libs/altogic';
 
-export async function login({ email, password }) {
-	return altogic.auth.signInWithEmail(email, password);
-}
-export async function register({ email, password, ...rest }) {
-	return altogic.auth.signUpWithEmail(email, password, rest);
-}
 export async function logout(request) {
 	const session = await getUserSession(request);
 	const token = session.get('token');
@@ -130,7 +124,8 @@ export async function getAllSessions(request) {
 		})),
 	};
 }
-export async function getUserByToken(token) {
+
+export function getUserByToken(token) {
 	altogic.auth.setSession({ token });
 	return altogic.auth.getUserFromDB();
 }

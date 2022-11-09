@@ -1,5 +1,5 @@
 import { Form, Link, useActionData, useTransition } from '@remix-run/react';
-import { login, createUserSession, requireNoAuth } from '~/utils/auth.server';
+import { createUserSession, requireNoAuth } from '~/utils/auth.server';
 import { json } from '@remix-run/node';
 import altogic from '~/libs/altogic';
 
@@ -11,7 +11,7 @@ export async function loader({ request }) {
 export async function action({ request }) {
 	const formData = await request.formData();
 	const { email, password } = Object.fromEntries(formData);
-	const { session, errors } = await login({ email, password });
+	const { session, errors } = await altogic.auth.signInWithEmail(email, password);
 
 	if (errors) {
 		return json({ errors });
@@ -20,6 +20,7 @@ export async function action({ request }) {
 	altogic.auth.setSession(session);
 	return createUserSession(session.token, '/profile');
 }
+
 export default function Login() {
 	const transition = useTransition();
 	const actionData = useActionData();
