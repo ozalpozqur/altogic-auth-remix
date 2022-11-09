@@ -113,8 +113,8 @@ export default altogic;
 ## Create Routes
 Remix has built-in file system routing. It means that we can create a page by creating a file in the `app/routes` directory.
 Let's create some pages and directory in **pages/** folder as below:
-* api/logout.jsx
-* api/update-user.jsx
+* api/logout.js
+* api/update-user.js
 * index.jsx
 * login.jsx
 * register.jsx
@@ -448,6 +448,194 @@ export default function Profile() {
 	);
 }
 ```
+
+### Replacing app/routes/api/logout.js with the following code:
+
+In this page we will remove session and user infos from state and storage.
+```js
+import { logout } from '~/utils/auth.server';
+
+export const loader = async ({ request }) => {
+	return logout(request);
+};
+```
+
+### Replacing app/routes/api/update-user.js with the following code:
+
+In this page we will update user's information from database.
+```js
+import { redirect } from '@remix-run/node';
+import { updateUser } from '~/utils/auth.server';
+
+export async function action({ request }) {
+	const formData = await request.formData();
+	const data = Object.fromEntries(formData);
+	return updateUser(request, data);
+}
+
+export async function loader() {
+	return redirect('/profile');
+}
+```
+
+## Avatar Component for uploading profile picture
+In this component, we will use Altogic's **altogic.storage.bucket('root').upload()** function to upload the image to the storage.
+```jsx
+import { useState } from 'react';
+import altogic from '~/libs/altogic';
+
+export default function Avatar({ user }) {
+	const [_user, setUser] = useState(user);
+	const [loading, setLoading] = useState(false);
+	const [errorMessage, setErrorMessage] = useState(null);
+
+	const userPicture = _user?.profilePicture ?? `https://ui-avatars.com/api/?name=${_user?.name}`;
+
+	async function handleChange(e) {
+		const file = e.target.files[0];
+		e.target.value = null;
+		if (!file) return;
+		try {
+			setLoading(true);
+			setErrorMessage(null);
+			const { publicPath } = await updateProfilePicture(file);
+			const user = await updateUser({ profilePicture: publicPath });
+			setUser(user);
+		} catch (e) {
+			setErrorMessage(e.message);
+		} finally {
+			setLoading(false);
+		}
+	}
+	async function updateProfilePicture(file) {
+		const { data, errors } = await altogic.storage.bucket('root').upload(file.name, file);
+		if (errors) throw new Error("Couldn't upload file");
+		return data;
+	}
+	async function updateUser(data) {
+		const { data: userFromDB, errors } = await altogic.db.model('users').object(_user?._id).update(data);
+		if (errors) throw new Error("Couldn't update user");
+		return userFromDB;
+	}
+
+	return (
+		<div>
+			<figure className="flex flex-col gap-4 items-center justify-center py-2">
+				<picture className="border rounded-full w-24 h-24 overflow-hidden">
+					<img className="object-cover w-full h-full" src={userPicture} alt={_user?.name} />
+				</picture>
+			</figure>
+			<div className="flex flex-col gap-4 justify-center items-center">
+				<label className="border p-2 cursor-pointer">
+					<span>{loading ? 'Uploading...' : 'Change Avatar'}</span>
+					<input
+						onChange={handleChange}
+						name="picture"
+						disabled={loading}
+						className="hidden"
+						type="file"
+						accept="image/*"
+					/>
+				</label>
+				{errorMessage && <p className="text-red-500">{errorMessage}</p>}
+			</div>
+		</div>
+	);
+}
+```
+
+## UserInfo Component for updating username
+In this component, we will use Altogic's database operations to update the user's name.
+```jsx
+import { useEffect, useState } from 'react';
+import { useActionData, useFetcher } from '@remix-run/react';
+
+export default function UserInfo({ user }) {
+	const fetcher = useFetcher();
+	const [changeMode, setChangeMode] = useState(false);
+	const actionData = useActionData();
+
+	const openChangeMode = () => {
+		setChangeMode(true);
+	};
+
+	useEffect(() => {
+		if (fetcher.type === 'done') setChangeMode(false);
+	}, [fetcher]);
+
+	return (
+		<section className="border p-4 w-full">
+			{actionData?.name}
+			{changeMode ? (
+				<fetcher.Form method="post" action="/api/update-user" className="flex items-center justify-center">
+					<input defaultValue={user.name} type="text" name="name" className="text-3xl text-center" />
+				</fetcher.Form>
+			) : (
+				<div className="space-y-4">
+					<h1 className="text-3xl">Hello, {user?.name}</h1>
+					<button onClick={openChangeMode} className="border p-2">
+						Change name
+					</button>
+				</div>
+			)}
+		</section>
+	);
+}
+```
+
+## Sessions Component for listing user's sessions
+In this component, we will use Altogic's **altogic.auth.getAllSessions()** to get the user's sessions and delete them.
+
+```jsx
+import altogic from '~/libs/altogic';
+import { useState } from 'react';
+
+export default function Sessions({ sessions }) {
+	const [sessionsList, setSessionsList] = useState(sessions);
+	altogic.auth.setSession({ token: sessions.find(s => s.isCurrent).token });
+
+	const logoutSession = async session => {
+		const { errors } = await altogic.auth.signOut(session.token);
+		if (!errors) {
+			setSessionsList(prev => prev.filter(s => s.token !== session.token));
+		}
+	};
+
+	return (
+		<div className="border p-4 space-y-4">
+			<p className="text-3xl">All Sessions</p>
+			<ul className="flex flex-col gap-2">
+				{sessionsList.map(session => (
+					<li key={session.token} className="flex justify-between gap-12">
+						<div>
+							{session?.isCurrent ? (
+								<span>Current Sessions</span>
+							) : (
+								<span>
+									<strong>Device name: </strong>
+									{session?.userAgent?.device?.family}
+								</span>
+							)}
+						</div>
+						<div className="flex items-center gap-2">
+							<span>{new Date(session.creationDtm).toLocaleDateString('en-US')}</span>
+							{!session?.isCurrent && (
+								<button
+									onClick={() => logoutSession(session)}
+									className="border grid place-items-center p-2 h-8 w-8 aspect-square leading-none"
+								>
+									X
+								</button>
+							)}
+						</div>
+					</li>
+				))}
+			</ul>
+		</div>
+	);
+}
+```
+
 ## Conclusion
 Congratulations!✨
 
