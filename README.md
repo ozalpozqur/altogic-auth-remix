@@ -488,8 +488,6 @@ In this file, we will create some functions for our authentication system.
 for more information about authentication, you can check the [Remix Documentation](https://remix.run/docs/en/v1/tutorials/jokes#authentication).
 
 ```js
-
-````js
 import { createCookieSessionStorage, json, redirect } from '@remix-run/node';
 import altogic from '~/libs/altogic';
 
