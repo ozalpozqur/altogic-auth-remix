@@ -21,9 +21,12 @@ After completion of this tutorial, you will learn the following:
 If you are new to Remix applications, this tutorial is definitely for you to understand the basics and even advanced concepts.
 
 
-
 ## How email-based sign-up works in Altogic
 By default, when you create an app in Altogic, email-based authentication is enabled. In addition, during email-based authentication, the email address of the user is also verified. Below you can find the flow of email and password-based sign-up process.
+
+![Authentication Flow](./github/auth-flow.png)
+
+If email verification is disabled, then after step 2, Altogic immediately returns a new session to the user, meaning that steps after step #2 in the above flow are not executed. You can easily configure email-based authentication settings from the **App Settings > Authentication** in Altogic Designer. One critical parameter you need to specify is the Redirect URL, you can also customize this parameter from **App Settings > Authentication**. Finally, you can also customize the email message template from the A**pp Settings > Authentication > Messaget Templates**.
 
 ## Prerequisites
 To complete this tutorial, make sure you have installed the following tools and utilities on your local development environment.
@@ -31,11 +34,6 @@ To complete this tutorial, make sure you have installed the following tools and 
 - [NodeJS](https://nodejs.org/en/download/)
 - [Remix App](https://remix.run/docs/en/v1/tutorials/blog#quickstart)
 - You also need an Altogic Account. If you do not have one, you can create an account by [signin up for Altogic](https://designer.altogic.com/).
-
-
-![Authentication Flow](./github/auth-flow.png)
-
-If email verification is disabled, then after step 2, Altogic immediately returns a new session to the user, meaning that steps after step #2 in the above flow are not executed. You can easily configure email-based authentication settings from the **App Settings > Authentication** in Altogic Designer. One critical parameter you need to specify is the Redirect URL, you can also customize this parameter from **App Settings > Authentication**. Finally, you can also customize the email message template from the A**pp Settings > Authentication > Messaget Templates**.
 
 
 ## Creating an Altogic App
@@ -53,10 +51,9 @@ Click + New app and follow the instructions;
 
 ![Create App](github/2-create-app.png)
 
-Then click Next and select Basic Authentication template. This template is creates a default user model for your app which is required by [Altogic Client Library](https://github.com/altogic/altogic-js) to store user data and manage authentication.
-
-Then click Next and select Basic Authentication template. This template is based on session authentication and highly recommended to secure your apps.
+Then click Next and select Basic template. This template creates a default user data model for your app which is required by **Altogic Client Library** to store user data and manage authentication. You can add additional user fields to this data model (e.g., name, surname, gender, birthdate) and when calling the `signUpWithEmail` method of the client library you can pass these additional data.
 ![Choose Template](github/3-choose-template.png)
+> **Tip**: If you do not select the basic template, instead selected the blank app template the user data model will not be created for your app. In order to use the Altogic Client Library's authentication methods you need a user data model to store the user data. You can easily create a new data model manually and from the App Settings > Authentication mark this new data model as your user data model.
 
 Then click Next to confirm and create an app.
 
@@ -67,6 +64,10 @@ Click the **Home** icon at the left sidebar to copy the `envUrl` and `clientKey`
 ![Client Keys](github/4-client-keys.png)
 
 Once the user created successfully, our Remix.js app will route the user to the Verification page, and a verification email will be sent to the user’s email address. When the user clicks the link in the mail, the user will navigate to the redirect page to grant authentication rights. After successfully creating a session on the Redirect page, users will be redirected to the Home page.
+
+> If you want, you can deactivate or customize the mail verification from App Settings -> Authentication in Logic Designer.
+
+![Mail Verification](github/15-mail.png) 
 
 ## Create a Remix project
 Make sure you have an up-to-date version of Node.js installed, then run the following command in your command line
@@ -114,7 +115,7 @@ export default altogic;
 
 ## Create Routes
 Remix has built-in file system routing. It means that we can create a page by creating a file in the `app/routes` directory.
-Let's create some pages and directory in `routes/ folder as below:
+Let's create some pages and directory in `routes/` folder as below:
 * api/logout.js
 * api/update-user.js
 * index.jsx
@@ -287,7 +288,7 @@ In this page, we will show a form to sign up with email and password. We will us
 
 We will save session and user infos to state and storage if the api return session. Then user will be redirected to profile page.
 
-If signUpWithEmail does not return session, it means user need to confirm email, so we will show the success message.
+If `signUpWithEmail` does not return session, it means user need to confirm email, so we will show the success message.
 
 ```jsx
 import { Form, Link, useActionData, useTransition } from '@remix-run/react';
