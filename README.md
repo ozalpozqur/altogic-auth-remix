@@ -376,8 +376,9 @@ export default function Register() {
 
 ### Replacing app/routes/auth-redirect.jsx with the following code:
 
-We use this page for verify the user's email address and Login With Magic Link Authentication.
+In this page, we will use Altogic's `altogic.auth.getAuthGrant()` function to log in with the handled token from the URL.
 
+Replacing pages/auth-redirect.js with the following code:
 ```jsx
 import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
