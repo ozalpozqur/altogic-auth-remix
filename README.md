@@ -18,8 +18,12 @@ After completion of this tutorial, you will learn the following:
 - How to manage active sessions of a user
 - And we will integrate Altogic authentication with the email/password method.
 
-If you are new to Vue applications, this tutorial is definitely for you to understand the basics and even advanced concepts.
+If you are new to Remix applications, this tutorial is definitely for you to understand the basics and even advanced concepts.
 
+
+
+## How email-based sign-up works in Altogic
+By default, when you create an app in Altogic, email-based authentication is enabled. In addition, during email-based authentication, the email address of the user is also verified. Below you can find the flow of email and password-based sign-up process.
 
 ## Prerequisites
 To complete this tutorial, make sure you have installed the following tools and utilities on your local development environment.
@@ -28,8 +32,6 @@ To complete this tutorial, make sure you have installed the following tools and 
 - [Remix App](https://remix.run/docs/en/v1/tutorials/blog#quickstart)
 - You also need an Altogic Account. If you do not have one, you can create an account by [signin up for Altogic](https://designer.altogic.com/).
 
-## How email-based sign-up works in Altogic
-By default, when you create an app in Altogic, email-based authentication is enabled. In addition, during email-based authentication, the email address of the user is also verified. Below you can find the flow of email and password-based sign-up process.
 
 ![Authentication Flow](./github/auth-flow.png)
 
@@ -64,7 +66,7 @@ Click the **Home** icon at the left sidebar to copy the `envUrl` and `clientKey`
 
 ![Client Keys](github/4-client-keys.png)
 
-Once the user created successfully, our Vue.js app will route the user to the Verification page, and a verification email will be sent to the user’s email address. When the user clicks the link in the mail, the user will navigate to the redirect page to grant authentication rights. After successfully creating a session on the Redirect page, users will be redirected to the Home page.
+Once the user created successfully, our Remix.js app will route the user to the Verification page, and a verification email will be sent to the user’s email address. When the user clicks the link in the mail, the user will navigate to the redirect page to grant authentication rights. After successfully creating a session on the Redirect page, users will be redirected to the Home page.
 
 ## Create a Remix project
 Make sure you have an up-to-date version of Node.js installed, then run the following command in your command line
@@ -112,7 +114,7 @@ export default altogic;
 
 ## Create Routes
 Remix has built-in file system routing. It means that we can create a page by creating a file in the `app/routes` directory.
-Let's create some pages and directory in **pages/** folder as below:
+Let's create some pages and directory in `routes/ folder as below:
 * api/logout.js
 * api/update-user.js
 * index.jsx
@@ -217,8 +219,8 @@ export default function Login() {
 }
 ```
 
-### Replacing pages/login-with-magic-link.vue with the following code:
-In this page, we will show a form to **log in with Magic Link** with only email. We will use Altogic's **altogic.auth.sendMagicLinkEmail()** function to log in.
+### Replacing app/routes/login-with-magic-link.js with the following code:
+In this page, we will show a form to **log in with Magic Link** with only email. We will use Altogic's `altogic.auth.sendMagicLinkEmail()` function to sending magic link to user's email.
 
 ````jsx
 import { Link, useActionData, useFetcher } from '@remix-run/react';
@@ -478,7 +480,9 @@ export async function loader() {
 }
 ```
 
-# Let's get to the most important point
+# Handling Authentication in Server Side
+This is the most important part of the project. We will handle authentication in server side. We will use altogic library to handle authentication in server side.
+
 Remix is a server side rendering tool, we will do some operations on the backend. 
 So we need to create a folder named `utils/` in our `app/` directory and create a file named `auth.server.js` in it.
 
@@ -598,7 +602,7 @@ export function getUserByToken(token) {
 	altogic.auth.setSession({ token });
 	return altogic.auth.getUserFromDB();
 }
-````
+```
 
 ## Avatar Component for uploading profile picture
 Open Avatar.js and paste the below code to create an avatar for the user. For convenience, we will be using the user's name as the name of the uploaded file and upload the profile picture to the root directory of our app storage. If needed you can create different buckets for each user or a generic bucket to store all provided photos of users. The Altogic Client Library has all the methods to manage buckets and files.
@@ -666,7 +670,7 @@ export default function Avatar({ user }) {
 }
 ```
 
-## UserInfo Component for updating username
+## UserInfo Component for updating user's name
 In this component, we will use Altogic's database operations to update the user's name.
 ```jsx
 import { useEffect, useState } from 'react';
@@ -706,7 +710,7 @@ export default function UserInfo({ user }) {
 ```
 
 ## Sessions Component for listing user's sessions
-In this component, we will use Altogic's **altogic.auth.getAllSessions()** to get the user's sessions and delete them.
+In this component, we will use Altogic's `altogic.auth.getAllSessions()` to get the user's sessions and delete them.
 
 ```jsx
 import altogic from '~/libs/altogic';
