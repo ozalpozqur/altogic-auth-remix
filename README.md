@@ -26,7 +26,8 @@ By default, when you create an app in Altogic, email-based authentication is ena
 
 ![Authentication Flow](./github/auth-flow.png)
 
-If email verification is disabled, then after step 2, Altogic immediately returns a new session to the user, meaning that steps after step #2 in the above flow are not executed. You can easily configure email-based authentication settings from the **App Settings > Authentication** in Altogic Designer. One critical parameter you need to specify is the Redirect URL, you can customize this parameter from **App Settings > Authentication**. Finally, you can also customize the email message template from the A**pp Settings > Authentication > Messaget Templates**.
+If email verification is disabled, then after step 2, Altogic immediately returns a new session to the user, meaning that steps after step #2 in the above flow are not executed. You can easily configure email-based authentication settings from the **App Settings > Authentication** in Altogic Designer. One critical parameter you need to specify is the Redirect URL, you can customize this parameter from **App Settings > Authentication**. Finally, you can customize the email message template from the A**pp Settings > Authentication > Messaget Templates**.
+> For frontend apps that use server-side rendering, the session token needs to be stored in an HTTP cookie so that the client browser and the frontend server can exchange session information. Otherwise, the session information can be lost, and the Altogic Client library methods that require a session token can fail.
 
 ## Prerequisites
 To complete this tutorial, make sure you have installed the following tools and utilities on your local development environment.
@@ -51,11 +52,11 @@ Click + New app and follow the instructions;
 
 ![Create App](github/2-create-app.png)
 
-Then click Next and select Basic template. This template creates a default user data model for your app which is required by **Altogic Client Library** to store user data and manage authentication. You can add additional user fields to this data model (e.g., name, surname, gender, birthdate) and when calling the `signUpWithEmail` method of the client library you can pass these additional data.
+Then, click Next and select Basic template. This template creates a default user data model for your app which is required by **Altogic Client Library** to store user data and manage authentication. You can add additional user fields to this data model (e.g., name, surname, gender, birthdate) and when calling the `signUpWithEmail` method of the client library you can pass these additional data.
 ![Choose Template](github/3-choose-template.png)
 > **Tip**: If you do not select the basic template, instead selected the blank app template the user data model will not be created for your app. In order to use the Altogic Client Library's authentication methods you need a user data model to store the user data. You can easily create a new data model manually and from the App Settings > Authentication mark this new data model as your user data model.
 
-Then click Next to confirm and create an app.
+Then, click Next to confirm and create an app.
 
 Awesome! We have created our application; now click/tap on the **newly created app to launch the Designer.** In order to access the app and use the Altogic client library, we should get `envUrl` and `clientKey` of this app. You can use any one of the API base URLs specified for your app environment as your envUrl.
 
@@ -100,7 +101,6 @@ import { createClient } from 'altogic';
 
 const ENV_URL = ''; // replace with your envUrl
 const CLIENT_KEY = ''; // replace with your clientKey
-const API_KEY = ''; // replace with your apiKey
 
 const altogic = createClient(ENV_URL, CLIENT_KEY, {
 	apiKey: API_KEY,
@@ -109,7 +109,9 @@ const altogic = createClient(ENV_URL, CLIENT_KEY, {
 
 export default altogic;
 ```
-> Replace ENV_URL, CLIENT_KEY and API_KEY which is shown in the **Home** view of [Altogic Designer](https://designer.altogic.com/).
+> Replace ENV_URL and CLIENT_KEY which is shown in the **Home** view of [Altogic Designer](https://designer.altogic.com/).
+
+> `signInRedirect` is the sign in page URL to redirect the user when user's session becomes invalid. Altogic client library observes the responses of the requests made to your app backend. If it detects a response with an error code of missing or invalid session token, it can redirect the users to this signin url.
 
 
 ## Create Routes
@@ -158,7 +160,7 @@ export default function Index() {
 ### Replacing app/routes/login.jsx with the following code:
 In this page, we will show a form to log in with email and password. 
 
-We will use **remix's action** call our backend api. We will save session and user infos to state and storage if the api return success. Then user will be redirected to profile page.
+We will use **remix's action** call our backend api. We will save session and user infos to state and storage if the api returns success. Then, user will be redirected to profile page.
 ```jsx
 import { Form, Link, useActionData, useTransition } from '@remix-run/react';
 import { createUserSession, requireNoAuth } from '~/utils/auth.server';
@@ -285,7 +287,9 @@ export default function LoginWithMagicLink() {
 ### Replacing app/routes/register.jsx with the following code:
 In this page, we will show a form to sign up with email and password. We will use **remix's action** call our backend api.
 
-We will save session and user infos to state and storage if the api return session. Then user will be redirected to profile page.
+We will save session and user infos to state and storage if the api returns session. Then, user will be redirected to profile page.
+
+`signUpWithEmail` function can accept optional  third parameter data to save the user's profile. We will save the user's name to the database in this example.
 
 If `signUpWithEmail` does not return session, it means user need to confirm email, so we will show the success message.
 
@@ -374,8 +378,7 @@ export default function Register() {
 ```
 
 ### Replacing app/routes/auth-redirect.jsx with the following code:
-
-In this page, we will use Altogic's `altogic.auth.getAuthGrant()` function to log in with the handled token from the URL.
+With the `getAuthGrant()` method we will use the accessToken to create a new user session and associated sessionToken.
 
 ```jsx
 import { json } from '@remix-run/node';
@@ -413,9 +416,9 @@ export default function AuthRedirect() {
 ### Replacing app/routes/profile.jsx with the following code:
 In this page, we will show the user's profile, and We will use our sign-out api route.
 
-We will remove session and user infos from state and storage if signOut api return success. Then user will be redirected to login page.
+We will remove session and user infos from state and storage if signOut api returns success. Then, user will be redirected to login page.
 
-This page is protected. Before page loaded, We will check cookie. If there is token, and it's valid, we will sign in and fetch user, session information. If there is not or not valid, the user will be redirected to sign in page.
+This page is protected. Before page loaded, We will check cookie. If there is **sessionToken**, and it's valid, we will sign in and fetch user, session information. If there is not or not valid, the user will be redirected to sign in page.
 
 ```jsx
 import { Link, useLoaderData } from '@remix-run/react';
@@ -489,7 +492,8 @@ So we need to create a folder named `utils/` in our `app/` directory and create 
 ### Replacing app/utils/auth.server.js with the following code:
 
 In this file, we will create some functions for our authentication system.
-for more information about authentication, you can check the [Remix Documentation](https://remix.run/docs/en/v1/tutorials/jokes#authentication).
+
+For more information about authentication, you can check the [Remix Documentation](https://remix.run/docs/en/v1/tutorials/jokes#authentication).
 
 ```js
 import { createCookieSessionStorage, json, redirect } from '@remix-run/node';
@@ -596,6 +600,12 @@ export async function getAllSessions(request) {
 			isCurrent: session.token === token,
 		})),
 	};
+}
+
+export async function updateUser(request, data) {
+	const { user, errors } = await getUserByToken(await getToken(request));
+	if (errors) throw errors;
+	return altogic.db.model("users").object(user._id).update(data);
 }
 
 export function getUserByToken(token) {

@@ -104,6 +104,12 @@ export async function getAllSessions(request) {
 	};
 }
 
+export async function updateUser(request, data) {
+	const { user, errors } = await getUserByToken(await getToken(request));
+	if (errors) throw errors;
+	return altogic.db.model("users").object(user._id).update(data);
+}
+
 export function getUserByToken(token) {
 	altogic.auth.setSession({ token });
 	return altogic.auth.getUserFromDB();
