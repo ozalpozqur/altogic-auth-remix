@@ -131,6 +131,7 @@ Let's create some pages and directory in `routes/` folder as below:
 ### Replacing app/routes/index.jsx with the following code:
 In this page, we will show Login, Login With Magic Link and Register buttons.
 ```jsx
+//  app/routes/index.jsx
 import { Link } from '@remix-run/react';
 import { json } from '@remix-run/node';
 import { requireNoAuth } from '~/utils/auth.server';
@@ -162,6 +163,7 @@ In this page, we will show a form to log in with email and password.
 
 We will use **remix's action** call our backend api. We will save session and user infos to state and storage if the api returns success. Then, user will be redirected to profile page.
 ```jsx
+// app/routes/login.jsx
 import { Form, Link, useActionData, useTransition } from '@remix-run/react';
 import { createUserSession, requireNoAuth } from '~/utils/auth.server';
 import { json } from '@remix-run/node';
@@ -228,6 +230,7 @@ In this page, we will show a form to **log in with Magic Link** with only email.
 When the user clicks on the magic link in the email, Altogic verifies the validity of the magic link and, if successful, redirects the user to the redirect URL specified in your app authentication settings with an access token in a query string parameter named 'access_token.' The magic link flows in a similar way to the sign-up process. We use the getAuthGrant method to create a new session and associated `sessionToken`.
 
 ```jsx
+// app/routes/login-with-magic-link.js
 import { Link, useActionData, useFetcher } from '@remix-run/react';
 import altogic from '~/libs/altogic';
 import { json } from '@remix-run/node';
@@ -296,6 +299,7 @@ We will save session and user infos to state and storage if the api returns sess
 If `signUpWithEmail` does not return session, it means user need to confirm email, so we will show the success message.
 
 ```jsx
+// app/routes/register.jsx
 import { Form, Link, useActionData, useTransition } from '@remix-run/react';
 import { json } from '@remix-run/node';
 import altogic from '~/libs/altogic';
@@ -383,6 +387,7 @@ export default function Register() {
 In this page we use the `getAuthGrant()` method to create a new session and associated `sessionToken` for verify email or sign in with magic link.
 
 ```jsx
+// app/routes/auth-redirect.jsx
 import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import altogic from '~/libs/altogic';
@@ -423,6 +428,7 @@ We will remove session and user infos from state and storage if signOut api retu
 This page is protected. Before page loaded, We will check cookie. If there is **sessionToken**, and it's valid, we will sign in and fetch user, session information. If there is not or not valid, the user will be redirected to sign in page.
 
 ```jsx
+// app/routes/profile.jsx
 import { Link, useLoaderData } from '@remix-run/react';
 import { getAllSessions, getToken, getUserByToken, requireAuth } from '~/utils/auth.server';
 import UserInfo from '~/components/UserInfo';
@@ -460,6 +466,7 @@ export default function Profile() {
 
 In this page we will remove session and user infos from state and storage.
 ```js
+//  app/routes/api/logout.js
 import { logout } from '~/utils/auth.server';
 
 export const loader = async ({ request }) => {
@@ -471,6 +478,7 @@ export const loader = async ({ request }) => {
 
 In this page we will update user's information from database.
 ```js
+// app/routes/api/update-user.js
 import { redirect } from '@remix-run/node';
 import { updateUser } from '~/utils/auth.server';
 
@@ -502,6 +510,7 @@ In this file, we will create some functions for our authentication system.
 For more information about authentication, you can check the [Remix Documentation](https://remix.run/docs/en/v1/tutorials/jokes#authentication).
 
 ```js
+// app/utils/auth.server.js
 import { createCookieSessionStorage, json, redirect } from '@remix-run/node';
 import altogic from '~/libs/altogic';
 
@@ -623,6 +632,7 @@ export function getUserByToken(token) {
 ## Avatar Component for uploading profile picture
 Open Avatar.js and paste the below code to create an avatar for the user. For convenience, we will be using the user's name as the name of the uploaded file and upload the profile picture to the root directory of our app storage. If needed you can create different buckets for each user or a generic bucket to store all provided photos of users. The Altogic Client Library has all the methods to manage buckets and files.
 ```jsx
+// app/components/Avatar.js
 import { useState } from 'react';
 import altogic from '~/libs/altogic';
 
@@ -689,6 +699,7 @@ export default function Avatar({ user }) {
 ## UserInfo Component for updating user's name
 In this component, we will use Altogic's database operations to update the user's name.
 ```jsx
+// app/components/UserInfo.js
 import { useEffect, useState } from 'react';
 import { useActionData, useFetcher } from '@remix-run/react';
 
@@ -729,6 +740,7 @@ export default function UserInfo({ user }) {
 In this component, we will use Altogic's `altogic.auth.getAllSessions()` to get the user's sessions and delete them.
 
 ```jsx
+// app/components/Sessions.js
 import altogic from '~/libs/altogic';
 import { useState } from 'react';
 
