@@ -1,4 +1,4 @@
-# Email & Password based authentication using Remix & Altogic
+# Email & Password Based Authentication using Remix & Altogic
 
 
 ## Introduction
