@@ -52,7 +52,7 @@ Click + New app and follow the instructions;
 
 ![Create App](github/2-create-app.png)
 
-Then, click Next and select Basic template. This template creates a default user data model for your app which is required by **Altogic Client Library** to store user data and manage authentication. You can add additional user fields to this data model (e.g., name, surname, gender, birthdate) and when calling the `signUpWithEmail` method of the client library you can pass these additional data.
+Then, click Next and select Basic template. This template creates a default user data model for your app which is required by [**Altogic Client Library**](https://www.altogic.com/client/) to store user data and manage authentication. You can add additional user fields to this data model (e.g., name, surname, gender, birthdate) and when calling the `signUpWithEmail` method of the client library you can pass these additional data.
 ![Choose Template](github/3-choose-template.png)
 > **Tip**: If you do not select the basic template, instead selected the blank app template the user data model will not be created for your app. In order to use the Altogic Client Library's authentication methods you need a user data model to store the user data. You can easily create a new data model manually and from the App Settings > Authentication mark this new data model as your user data model.
 
@@ -161,7 +161,7 @@ export default function Index() {
 ### Replacing app/routes/login.jsx with the following code:
 In this page, we will show a form to log in with email and password. 
 
-We will use **remix's action** call our backend api. We will save session and user infos to state and storage if the api returns success. Then, user will be redirected to profile page.
+We will use **remix's action** call our backend api. We will save session and user info to state and storage if the api returns success. Then, user will be redirected to profile page.
 ```jsx
 // app/routes/login.jsx
 import { Form, Link, useActionData, useTransition } from '@remix-run/react';
@@ -292,7 +292,7 @@ export default function LoginWithMagicLink() {
 ### Replacing app/routes/register.jsx with the following code:
 In this page, we will show a form to sign up with email and password. We will use **remix's action** call our backend api.
 
-We will save session and user infos to state and storage if the api returns session. Then, user will be redirected to profile page.
+We will save session and user info to state and storage if the api returns session. Then, user will be redirected to profile page.
 
 `signUpWithEmail` function can accept optional  third parameter data to save the user's profile. We will save the user's name to the database in this example.
 
@@ -423,7 +423,7 @@ export default function AuthRedirect() {
 ### Replacing app/routes/profile.jsx with the following code:
 In this page, we will show the user's profile, and We will use our sign-out api route.
 
-We will remove session and user infos from state and storage if signOut api returns success. Then, user will be redirected to login page.
+We will remove session and user info from state and storage if signOut api returns success. Then, user will be redirected to login page.
 
 This page is protected. Before page loaded, We will check cookie. If there is **sessionToken**, and it's valid, we will sign in and fetch user, session information. If there is not or not valid, the user will be redirected to sign in page.
 
@@ -464,7 +464,7 @@ export default function Profile() {
 
 ### Replacing app/routes/api/logout.js with the following code:
 
-In this page we will remove session and user infos from state and storage.
+In this page we will remove session and user info from state and storage.
 ```js
 //  app/routes/api/logout.js
 import { logout } from '~/utils/auth.server';
@@ -630,7 +630,7 @@ export function getUserByToken(token) {
 ```
 
 ## Avatar Component for uploading profile picture
-Open Avatar.js and paste the below code to create an avatar for the user. For convenience, we will be using the user's name as the name of the uploaded file and upload the profile picture to the root directory of our app storage. If needed you can create different buckets for each user or a generic bucket to store all provided photos of users. The Altogic Client Library has all the methods to manage buckets and files.
+Open Avatar.js and paste the below code to create an avatar for the user. For convenience, we will be using the user's `_id` as the name of the uploaded file and upload the profile picture to the root directory of our app storage. If needed you can create different buckets for each user or a generic bucket to store all provided photos of users. The Altogic Client Library has all the methods to manage buckets and files.
 ```jsx
 // app/components/Avatar.js
 import { useState } from 'react';
@@ -660,7 +660,7 @@ export default function Avatar({ user }) {
 		}
 	}
 	async function updateProfilePicture(file) {
-		const { data, errors } = await altogic.storage.bucket('root').upload(_user?.name, file);
+		const { data, errors } = await altogic.storage.bucket('root').upload(`user_${_user?._id}`, file);
 		if (errors) throw new Error("Couldn't upload file");
 		return data;
 	}
