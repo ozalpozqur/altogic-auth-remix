@@ -4,7 +4,7 @@
 ## Introduction
 [Altogic](https://www.altogic.com) is a Backend as a Service (BaaS) platform and provides a variety of services in modern web and mobile development. Most modern applications using Remix or other libraries/frameworks require knowing the identity of a user. And this necessity allows an app to securely save user data and session in the cloud and provide more personalized functionalities and views to users.
 
-Altogic has an authentication service that integrates and implements well in JAMstack apps. It has a ready-to-use [Javascript client library](https://www.npmjs.com/package/altogic), and it supports many authentication providers such as email/password, phone number, magic link, and OAuth providers like Google, Facebook, Twitter, Github Apple, etc.,
+Altogic has an authentication service that integrates and implements well in JAMstack apps. It has a ready-to-use [Javascript client library](https://www.npmjs.com/package/altogic), and it supports many authentication providers such as email/password, phone number, magic link, and OAuth providers like Google, Facebook, Twitter, Github, Apple etc.,
 
 In this tutorial, we will implement email/password authentication with Remix and take a look at how as a Remix developer, we build applications and integrate with Altogic Authentication.
 
@@ -103,7 +103,6 @@ const ENV_URL = ''; // replace with your envUrl
 const CLIENT_KEY = ''; // replace with your clientKey
 
 const altogic = createClient(ENV_URL, CLIENT_KEY, {
-	apiKey: API_KEY,
 	signInRedirect: '/login',
 });
 
@@ -292,7 +291,7 @@ export default function LoginWithMagicLink() {
 ### Replacing app/routes/register.jsx with the following code:
 In this page, we will show a form to sign up with email and password. We will use **remix's action** call our backend api.
 
-We will save session and user info to state and storage if the api returns session. Then, user will be redirected to profile page.
+We will save session and user info to state if the api returns session. Then, user will be redirected to profile page.
 
 `signUpWithEmail` function can accept optional  third parameter data to save the user's profile. We will save the user's name to the database in this example.
 
