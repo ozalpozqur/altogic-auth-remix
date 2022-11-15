@@ -224,12 +224,14 @@ export default function Login() {
 ### Replacing app/routes/login-with-magic-link.js with the following code:
 In this page, we will show a form to **log in with Magic Link** with only email. We will use Altogic's `altogic.auth.sendMagicLinkEmail()` function to sending magic link to user's email.
 
-````jsx
+
+When the user clicks on the magic link in the email, Altogic verifies the validity of the magic link and, if successful, redirects the user to the redirect URL specified in your app authentication settings with an access token in a query string parameter named 'access_token.' The magic link flows in a similar way to the sign-up process. We use the getAuthGrant method to create a new session and associated `sessionToken`.
+
+```jsx
 import { Link, useActionData, useFetcher } from '@remix-run/react';
 import altogic from '~/libs/altogic';
 import { json } from '@remix-run/node';
 import { useRef, useEffect } from 'react';
-
 export async function action({ request }) {
     const formData = await request.formData();
     const email = formData.get('email');
@@ -282,7 +284,7 @@ export default function LoginWithMagicLink() {
         </section>
     );
 }
-````
+```
 
 ### Replacing app/routes/register.jsx with the following code:
 In this page, we will show a form to sign up with email and password. We will use **remix's action** call our backend api.
@@ -378,7 +380,7 @@ export default function Register() {
 ```
 
 ### Replacing app/routes/auth-redirect.jsx with the following code:
-With the `getAuthGrant()` method we will use the accessToken to create a new user session and associated sessionToken.
+In this page we use the `getAuthGrant()` method to create a new session and associated `sessionToken` for verify email or sign in with magic link.
 
 ```jsx
 import { json } from '@remix-run/node';
@@ -486,8 +488,12 @@ export async function loader() {
 # Handling Authentication in Server Side
 This is the most important part of the project. We will handle authentication in server side. We will use altogic library to handle authentication in server side.
 
+For client-side (browser) rendered frontend apps, Altogic automatically stores the `sessionToken` in local storage. For server-side rendered frontend apps, since we do not have local storage available, we need to store the `sessionToken` somewhere to check whether the user has been authenticated or not. For this reason, we will store the `sessionToken` in an HTTP cookie named `session` which will be exchanged between the client browser and the front end server.
+
 Remix is a server side rendering tool, we will do some operations on the backend. 
 So we need to create a folder named `utils/` in our `app/` directory and create a file named `auth.server.js` in it.
+
+
 
 ### Replacing app/utils/auth.server.js with the following code:
 
