@@ -697,7 +697,9 @@ export default function Avatar({ user }) {
 ```
 
 ## UserInfo Component for updating user's name
-In this component, we will use Altogic's database operations to update the user's name.
+In this component, we will show and change the user's name. 
+
+We use **Remix's API route** `"/api/update-user"` to update the user's name.
 ```jsx
 // app/components/UserInfo.js
 import { useEffect, useState } from 'react';
