@@ -41,7 +41,7 @@ export default function Register() {
 	return (
 		<section className="flex flex-col items-center justify-center h-96 gap-4">
 			<Form ref={formRef} method="post" className="flex flex-col gap-2 w-full md:w-96">
-				<h1 className="self-start text-3xl font-bold">Login to your account</h1>
+				<h1 className="self-start text-3xl font-bold">Create an account</h1>
 				{actionData?.needToVerify && (
 					<div className="bg-green-500 text-white p-2">
 						Your account has been created. Please check your email to verify your account.
