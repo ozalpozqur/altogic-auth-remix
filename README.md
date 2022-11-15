@@ -1,4 +1,4 @@
-# Email & Password Based Authentication using Remix & Altogic
+# Email & Password Based Authentication Using Remix & Altogic
 
 
 ## Introduction
@@ -26,7 +26,7 @@ By default, when you create an app in Altogic, email-based authentication is ena
 
 ![Authentication Flow](./github/auth-flow.png)
 
-If email verification is disabled, then after step 2, Altogic immediately returns a new session to the user, meaning that steps after step #2 in the above flow are not executed. You can easily configure email-based authentication settings from the **App Settings > Authentication** in Altogic Designer. One critical parameter you need to specify is the Redirect URL, you can also customize this parameter from **App Settings > Authentication**. Finally, you can also customize the email message template from the A**pp Settings > Authentication > Messaget Templates**.
+If email verification is disabled, then after step 2, Altogic immediately returns a new session to the user, meaning that steps after step #2 in the above flow are not executed. You can easily configure email-based authentication settings from the **App Settings > Authentication** in Altogic Designer. One critical parameter you need to specify is the Redirect URL, you can customize this parameter from **App Settings > Authentication**. Finally, you can also customize the email message template from the A**pp Settings > Authentication > Messaget Templates**.
 
 ## Prerequisites
 To complete this tutorial, make sure you have installed the following tools and utilities on your local development environment.
@@ -75,7 +75,6 @@ Make sure you have an up-to-date version of Node.js installed, then run the foll
 npx create-remix@latest
 ```
 
-I showed you which options to choose in the image I will give you below. You can choose the same options as I did.
 ![Authentication Flow](./github/terminal.png)
 Open altogic-auth-remix folder in Visual Studio Code:
 ```bash
