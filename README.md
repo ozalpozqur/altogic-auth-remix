@@ -293,9 +293,8 @@ In this page, we will show a form to sign up with email and password. We will us
 
 We will save session and user info to state if the api returns session. Then, user will be redirected to profile page.
 
-`signUpWithEmail` function can accept optional  third parameter data to save the user's profile. We will save the user's name to the database in this example.
-
 If `signUpWithEmail` does not return session, it means user need to confirm email, so we will show the success message.
+> **Note:** `signUpWithEmail` function can accept optional  third parameter data to save the user's profile. We will save the user's name to the database in this example.
 
 ```jsx
 // app/routes/register.jsx
