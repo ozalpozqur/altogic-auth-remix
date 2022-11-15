@@ -68,7 +68,7 @@ Once the user created successfully, our Remix.js app will route the user to the 
 
 > If you want, you can deactivate or customize the mail verification from App Settings -> Authentication in Logic Designer.
 
-![Mail Verification](github/15-mail.png) 
+![Mail Verification](github/mail.png) 
 
 ## Create a Remix project
 Make sure you have an up-to-date version of Node.js installed, then run the following command in your command line
